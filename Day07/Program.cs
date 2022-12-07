@@ -24,77 +24,77 @@ Dictionary<string,DirectorySystemItem> ExecuteCommands(IReadOnlyList<string> com
     {
         var cmd = commands[i][..4];
 
-        switch(cmd)
+        switch (cmd)
         {
-            case "$ cd": RunCd(commands[i][5..]); break;
+            case "$ cd":
+            {
+                var path = commands[i][5..];
 
-            case "$ ls": RunLs(); break;
+                switch (path)
+                {
+                    case "/":
+                        currentPath = "/";
+                        break;
+                    case "..":
+                    {
+                        currentPath = currentPath[..currentPath.LastIndexOf('/')];
+                        if (string.IsNullOrEmpty(currentPath))
+                        {
+                            currentPath = "/";
+                        }
+
+                        break;
+                    }
+                    default:
+                        currentPath += "/" + path;
+                        break;
+                }
+
+                break;
+            }
+            case "$ ls":
+                if (!directories.TryGetValue(currentPath, out var directoryItem))
+                {
+                    directoryItem = new DirectorySystemItem
+                    {
+                        Name = currentPath
+                    };
+                    directories[currentPath] = directoryItem;
+                }
+
+                i++;
+                for ( ; i < commands.Count && commands[i][0] != '$'; i++)
+                {
+                    var fileItem = ParseFileItem(commands[i]);
+                    directoryItem.Items.Add(fileItem);
+
+                    if (fileItem is DirectorySystemItem item)
+                    {
+                        directories[currentPath + "/"  + fileItem.Name] = item;
+                    }
+                }
+                i--;
+                break;
         }
     }
 
     return directories;
+}
 
-    void RunCd(string path)
+IFileSystemItem ParseFileItem(string cmd)
+{
+    if (cmd.StartsWith("dir "))
     {
-        switch (path)
+        return new DirectorySystemItem
         {
-            case "/": currentPath = "/"; break;
-
-            case "..":
-            {
-                currentPath = currentPath[0..currentPath.LastIndexOf('/')];
-                if (string.IsNullOrEmpty(currentPath))
-                {
-                    currentPath = "/";
-                }
-            }
-            break;
-
-            default: currentPath += "/" + path; break;
-        }
+            Name = cmd[4..]
+        };
     }
 
-    void RunLs()
-    {
-        if (!directories.TryGetValue(currentPath, out var directoryItem))
-        {
-            directoryItem = new DirectorySystemItem
-            {
-                Name = currentPath
-            };
-            directories[currentPath] = directoryItem;
-        }
-
-        i++;
-        for ( ; i < commands.Count && commands[i][0] != '$'; i++)
-        {
-            var cmd = commands[i];
-            var fileItem = ParseFileItem(cmd);
-            directoryItem.Items.Add(fileItem);
-
-            if (fileItem is DirectorySystemItem item)
-            {
-                directories[currentPath + "/"  + fileItem.Name] = item;
-            }
-        }
-        i--;
-
-        IFileSystemItem ParseFileItem(string cmd)
-        {
-            if (cmd.StartsWith("dir "))
-            {
-                return new DirectorySystemItem
-                {
-                    Name = cmd[4..]
-                };
-            }
-
-            var parts = cmd.Split(' ');
-            var fileSize = int.Parse(parts[0]);
-            var fileName = parts[1];
-            return new FileSystemItem(fileName, fileSize);
-        }
-    }
+    var parts = cmd.Split(' ');
+    var fileSize = int.Parse(parts[0]);
+    var fileName = parts[1];
+    return new FileSystemItem(fileName, fileSize);
 }
 
 internal interface IFileSystemItem
