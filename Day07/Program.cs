@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-var lines = File.ReadAllLines("input.txt").ToArray();
+﻿var lines = File.ReadAllLines("input.txt").ToArray();
 var fileSystem = ExecuteCommands(lines);
 
 var answer1 = fileSystem
@@ -31,8 +29,6 @@ Dictionary<string,DirectorySystemItem> ExecuteCommands(IReadOnlyList<string> com
             case "$ cd": RunCd(commands[i][5..]); break;
 
             case "$ ls": RunLs(); break;
-
-            default: throw new UnreachableException();
         }
     }
 
@@ -76,9 +72,9 @@ Dictionary<string,DirectorySystemItem> ExecuteCommands(IReadOnlyList<string> com
             var fileItem = ParseFileItem(cmd);
             directoryItem.Items.Add(fileItem);
 
-            if (fileItem is DirectorySystemItem)
+            if (fileItem is DirectorySystemItem item)
             {
-                directories[currentPath + "/"  + fileItem.Name] = (DirectorySystemItem)fileItem;
+                directories[currentPath + "/"  + fileItem.Name] = item;
             }
         }
         i--;
