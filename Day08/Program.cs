@@ -84,23 +84,70 @@ int GetAnswer2(int[][] grid)
 {
     var maxScore = 0;
 
-    for (var rowIndex = 1; rowIndex < grid.Length - 1; rowIndex++)
-    {
-        for (var columnIndex = 1; columnIndex < grid[rowIndex].Length - 1; columnIndex++)
+    for (var rowIndex = 0; rowIndex < grid.Length; rowIndex++) {
+        for (var columnIndex = 0; columnIndex < grid[rowIndex].Length; columnIndex++)
         {
-            var scoreLeft = GetScoreLeft(grid, rowIndex, columnIndex);
-            var scoreRight = GetScoreRight(grid, rowIndex, columnIndex);
-            var scoreTop = GetScoreTop(grid, rowIndex, columnIndex);
-            var scoreBottom = GetScoreBottom(grid, rowIndex, columnIndex);
-            var score = scoreLeft * scoreRight * scoreTop * scoreBottom;
+            var height = grid[rowIndex][columnIndex];
+            var product = 1;
 
-            if (maxScore < score)
+            // top
+            var multiple = 0;
+            for (var i = rowIndex - 1; i >= 0; i--)
             {
-                maxScore = score;
+                multiple++;
+                if (grid[i][columnIndex] >= height)
+                {
+                    break;
+                }
+            }
+
+            product *= multiple;
+
+            // right
+            multiple = 0;
+            for (var i = columnIndex - 1; i >= 0; i--)
+            {
+                multiple++;
+                if (grid[rowIndex][i] >= height)
+                {
+                    break;
+                }
+            }
+
+            product *= multiple;
+
+            // bottom
+            multiple = 0;
+            for (var i = rowIndex + 1; i < grid.Length; i++)
+            {
+                multiple++;
+                if (grid[i][columnIndex] >= height)
+                {
+                    break;
+                }
+            }
+
+            product *= multiple;
+
+            // left
+            multiple = 0;
+            for (var i = columnIndex + 1; i < grid[rowIndex].Length; i++)
+            {
+                multiple++;
+                if (grid[rowIndex][i] >= height)
+                {
+                    break;
+                }
+            }
+
+            product *= multiple;
+
+            if (product > maxScore)
+            {
+                maxScore = product;
             }
         }
     }
-
     return maxScore;
 }
 
