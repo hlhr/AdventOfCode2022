@@ -31,6 +31,34 @@ bool IsVisibleInRow(IReadOnlyList<int[]> grid, int height, int columnIndex, int 
     return true;
 }
 
+int GetScoreLeft(int[][] grid, int currentRowIndex, int currentColumnIndex)
+{
+    var current = grid[currentRowIndex][currentColumnIndex];
+    var left = grid[currentRowIndex].Reverse().Take(currentColumnIndex).ToList();
+    return left.TakeWhile(i => i < current).Count() + (current == left.Last() ? 1 : 0);
+}
+
+int GetScoreRight(int[][] grid, int currentRowIndex, int currentColumnIndex)
+{
+    var current = grid[currentRowIndex][currentColumnIndex];
+    var right = grid[currentRowIndex].Skip(currentColumnIndex + 1).ToList();
+    return right.TakeWhile(i => i < current).Count() + (current == right.Last() ? 1 : 0);
+}
+
+int GetScoreTop(int[][] grid, int currentRowIndex, int currentColumnIndex)
+{
+    var current = grid[currentRowIndex][currentColumnIndex];
+    var top = grid.Select(i => i[currentColumnIndex]).Reverse().Take(currentRowIndex).ToList();
+    return top.TakeWhile(i => i < current).Count() + (current == top.Last() ? 1 : 0);
+}
+
+int GetScoreBottom(int[][] grid, int currentRowIndex, int currentColumnIndex)
+{
+    var current = grid[currentRowIndex][currentColumnIndex];
+    var bottom = grid.Select(i => i[currentColumnIndex]).Skip(currentRowIndex).ToList();
+    return bottom.TakeWhile(i => i < current).Count() + (current == bottom.Last() ? 1 : 0);
+}
+
 int GetAnswer1(IReadOnlyList<int[]> grid)
 {
     var visibleCounter = (grid.Count + grid.First().Length) * 2 - 4;
@@ -52,7 +80,32 @@ int GetAnswer1(IReadOnlyList<int[]> grid)
     return visibleCounter;
 }
 
+int GetAnswer2(int[][] grid)
+{
+    var maxScore = 0;
+
+    for (var rowIndex = 1; rowIndex < grid.Length - 1; rowIndex++)
+    {
+        for (var columnIndex = 1; columnIndex < grid[rowIndex].Length - 1; columnIndex++)
+        {
+            var scoreLeft = GetScoreLeft(grid, rowIndex, columnIndex);
+            var scoreRight = GetScoreRight(grid, rowIndex, columnIndex);
+            var scoreTop = GetScoreTop(grid, rowIndex, columnIndex);
+            var scoreBottom = GetScoreBottom(grid, rowIndex, columnIndex);
+            var score = scoreLeft * scoreRight * scoreTop * scoreBottom;
+
+            if (maxScore < score)
+            {
+                maxScore = score;
+            }
+        }
+    }
+
+    return maxScore;
+}
+
 var input = File.ReadLines("input.txt").ToList();
 var grid = ReadGrid(input);
 
-Console.WriteLine($"How many trees are visible from outside the grid? {GetAnswer1(grid)}");
+Console.WriteLine($"How many trees are visible from outside tree grid? {GetAnswer1(grid)}");
+Console.WriteLine($"What is the highest scenic score possible for any tree? {GetAnswer2(grid)}");
