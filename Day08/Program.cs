@@ -31,34 +31,6 @@ bool IsVisibleInRow(IReadOnlyList<int[]> grid, int height, int columnIndex, int 
     return true;
 }
 
-int GetScoreLeft(int[][] grid, int currentRowIndex, int currentColumnIndex)
-{
-    var current = grid[currentRowIndex][currentColumnIndex];
-    var left = grid[currentRowIndex].Reverse().Take(currentColumnIndex).ToList();
-    return left.TakeWhile(i => i < current).Count() + (current == left.Last() ? 1 : 0);
-}
-
-int GetScoreRight(int[][] grid, int currentRowIndex, int currentColumnIndex)
-{
-    var current = grid[currentRowIndex][currentColumnIndex];
-    var right = grid[currentRowIndex].Skip(currentColumnIndex + 1).ToList();
-    return right.TakeWhile(i => i < current).Count() + (current == right.Last() ? 1 : 0);
-}
-
-int GetScoreTop(int[][] grid, int currentRowIndex, int currentColumnIndex)
-{
-    var current = grid[currentRowIndex][currentColumnIndex];
-    var top = grid.Select(i => i[currentColumnIndex]).Reverse().Take(currentRowIndex).ToList();
-    return top.TakeWhile(i => i < current).Count() + (current == top.Last() ? 1 : 0);
-}
-
-int GetScoreBottom(int[][] grid, int currentRowIndex, int currentColumnIndex)
-{
-    var current = grid[currentRowIndex][currentColumnIndex];
-    var bottom = grid.Select(i => i[currentColumnIndex]).Skip(currentRowIndex).ToList();
-    return bottom.TakeWhile(i => i < current).Count() + (current == bottom.Last() ? 1 : 0);
-}
-
 int GetAnswer1(IReadOnlyList<int[]> grid)
 {
     var visibleCounter = (grid.Count + grid.First().Length) * 2 - 4;
@@ -80,71 +52,71 @@ int GetAnswer1(IReadOnlyList<int[]> grid)
     return visibleCounter;
 }
 
-int GetAnswer2(int[][] grid)
+int GetAnswer2(IReadOnlyList<int[]> grid)
 {
     var maxScore = 0;
 
-    for (var rowIndex = 0; rowIndex < grid.Length; rowIndex++) {
+    for (var rowIndex = 0; rowIndex < grid.Count; rowIndex++) {
         for (var columnIndex = 0; columnIndex < grid[rowIndex].Length; columnIndex++)
         {
             var height = grid[rowIndex][columnIndex];
-            var product = 1;
+            var score = 1;
 
             // top
             var multiple = 0;
-            for (var i = rowIndex - 1; i >= 0; i--)
+            for (var currentRowIndex = rowIndex - 1; currentRowIndex >= 0; currentRowIndex--)
             {
                 multiple++;
-                if (grid[i][columnIndex] >= height)
+                if (grid[currentRowIndex][columnIndex] >= height)
                 {
                     break;
                 }
             }
 
-            product *= multiple;
+            score *= multiple;
 
             // right
             multiple = 0;
-            for (var i = columnIndex - 1; i >= 0; i--)
+            for (var currentColumnIndex = columnIndex - 1; currentColumnIndex >= 0; currentColumnIndex--)
             {
                 multiple++;
-                if (grid[rowIndex][i] >= height)
+                if (grid[rowIndex][currentColumnIndex] >= height)
                 {
                     break;
                 }
             }
 
-            product *= multiple;
+            score *= multiple;
 
             // bottom
             multiple = 0;
-            for (var i = rowIndex + 1; i < grid.Length; i++)
+            for (var currentRowIndex = rowIndex + 1; currentRowIndex < grid.Count; currentRowIndex++)
             {
                 multiple++;
-                if (grid[i][columnIndex] >= height)
+                if (grid[currentRowIndex][columnIndex] >= height)
                 {
                     break;
                 }
             }
 
-            product *= multiple;
+            score *= multiple;
 
             // left
             multiple = 0;
-            for (var i = columnIndex + 1; i < grid[rowIndex].Length; i++)
+            for (var currentColumnIndex = columnIndex + 1; currentColumnIndex < grid[rowIndex].Length; currentColumnIndex++)
             {
                 multiple++;
-                if (grid[rowIndex][i] >= height)
+                if (grid[rowIndex][currentColumnIndex] >= height)
                 {
                     break;
                 }
             }
 
-            product *= multiple;
+            score *= multiple;
 
-            if (product > maxScore)
+            if (score > maxScore)
             {
-                maxScore = product;
+                maxScore = score;
             }
         }
     }
