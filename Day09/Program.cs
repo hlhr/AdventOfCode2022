@@ -1,16 +1,31 @@
 ﻿using System.Drawing;
 
-var moves = File
+List<Point> Follow(List<Point> traveled, Point moveToFollow)
+{
+    var current = traveled[^1];
+    var stepX = moveToFollow.X - current.X;
+    var stepY = moveToFollow.Y - current.Y;
+
+    if (Math.Abs(stepX) <= 1 && Math.Abs(stepY) <= 1)
+    {
+        return traveled;
+    }
+
+    var next = new Point(current.X + Math.Sign(stepX), current.Y + Math.Sign(stepY));
+
+    traveled.Add(next);
+    return traveled;
+}
+
+var pointsTraveledByHead =  File
     .ReadLines("input.txt")
     .Select(move => (Direction: move[0], Steps: int.Parse(move[2..])))
-    .ToList();
-
-var pointsTraveledByHead = moves.Aggregate(
+    .Aggregate(
     new List<Point> { new(0, 0) }, (traveled, move) =>
     {
         for (var step = 0; step < move.Steps; step++)
         {
-            var start = traveled.Last();
+            var start = traveled[^1];
             var to = move.Direction switch
             {
                 'L' => start with { X = start.X - 1 },
@@ -25,24 +40,39 @@ var pointsTraveledByHead = moves.Aggregate(
         return traveled;
     });
 
-var pointsTraveledByTail = pointsTraveledByHead.Aggregate(new List<Point> {new (0, 0)}, (traveled, headMove ) =>
-{
-    var current = traveled.Last();
-    var stepX = headMove.X - current.X;
-    var stepY = headMove.Y - current.Y;
+var tailVisitCount = pointsTraveledByHead
+    .Aggregate(new List<Point> {new (0, 0)}, Follow)
+    .Distinct()
+    .Count();
+Console.WriteLine($"Part 1: {tailVisitCount}");
 
-    if (Math.Abs(stepX) <= 1 && Math.Abs(stepY) <= 1)
+var tailMoves = new List<List<Point>>(9)
+{
+    new() { new Point(0, 0) },
+    new() { new Point(0, 0) },
+    new() { new Point(0, 0) },
+    new() { new Point(0, 0) },
+    new() { new Point(0, 0) },
+    new() { new Point(0, 0) },
+    new() { new Point(0, 0) },
+    new() { new Point(0, 0) },
+    new() { new Point(0, 0) },
+};
+
+var visitByTail = new List<Point>();
+
+foreach (var headMove in pointsTraveledByHead)
+{
+    tailMoves[0] = Follow(tailMoves[0], headMove);
+
+    for (var tailIndex = 1; tailIndex < tailMoves.Count; tailIndex++)
     {
-        return traveled;
+        tailMoves[tailIndex] = Follow(tailMoves[tailIndex], tailMoves[tailIndex - 1].Last());
     }
 
-    var next = new Point(current.X + Math.Sign(stepX), current.Y + Math.Sign(stepY));
+    visitByTail.Add(tailMoves[^1][^1]);
+}
 
-    traveled.Add(next);
-    return traveled;
-});
 
-// At least one visit
-var tailVisitCount = pointsTraveledByTail.Distinct().Count();
-
-Console.WriteLine($"How many positions does the tail of the rope visit at least once? {tailVisitCount}");
+var tailsVisitCount = visitByTail.Distinct().Count();
+Console.WriteLine($"Part 2: {tailsVisitCount}");
