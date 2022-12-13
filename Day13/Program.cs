@@ -34,17 +34,17 @@ int CompareValues(ValuePacket left, ValuePacket right)
     return result;
 }
 
+var packets = File.ReadLines("input.txt")
+    .Where(line => !string.IsNullOrEmpty(line))
+    .Select(line => GetPackets(JsonSerializer.Deserialize<JsonElement>(line)))
+    .ToList();
+
+
 var answer1 = 0;
-
-var chunks = File.ReadLines("input.txt").Where(line => !string.IsNullOrEmpty(line)).Chunk(2).ToList();
-for (var i = 0; i < chunks.Count; i++)
+var packetPairs = packets.Chunk(2).ToList();
+for (var i = 0; i < packetPairs.Count; i++)
 {
-    var leftElement = JsonSerializer.Deserialize<JsonElement>(chunks[i][0]);
-    var rightElement = JsonSerializer.Deserialize<JsonElement>(chunks[i][1]);
-
-    var left = GetPackets(leftElement);
-    var right = GetPackets(rightElement);
-    var compare = ComparePackets(left, right);
+    var compare = ComparePackets(packetPairs[i][0], packetPairs[i][1]);
 
     if (compare < 0)
     {
@@ -52,6 +52,16 @@ for (var i = 0; i < chunks.Count; i++)
     }
 }
 Console.WriteLine($"Part 1: {answer1}");
+
+var divider2 = GetPackets(JsonSerializer.Deserialize<JsonElement>("[[2]]"));
+var divider6 = GetPackets(JsonSerializer.Deserialize<JsonElement>("[[6]]"));
+packets.Add(divider2);
+packets.Add(divider6);
+var orderedPackets = packets.Order(Comparer<IPacket>.Create(ComparePackets)).ToList();
+
+var divider2Index = orderedPackets.FindIndex(p => p == divider2) + 1;
+var divider6Index = orderedPackets.FindIndex(p => p == divider6) + 1;
+Console.WriteLine($"Part 2: {divider2Index * divider6Index}");
 
 internal interface IPacket { };
 internal record ValuePacket(int Value) : IPacket;
